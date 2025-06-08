@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SquadBid - Group Buying Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', path='/css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">SquadBid</a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Create New Group Deal</h5>
+                        <form action="/create-deal" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label">Product Name</label>
+                                <input type="text" class="form-control" name="product_name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" name="description" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Original Price ($)</label>
+                                <input type="number" step="0.01" class="form-control" name="original_price" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Discount Percentage</label>
+                                <input type="number" step="0.1" class="form-control" name="discount_percentage" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Minimum Participants</label>
+                                <input type="number" class="form-control" name="min_participants" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Hours Active</label>
+                                <input type="number" class="form-control" name="hours_active" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Create Deal</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <h3>Active Group Deals</h3>
+                <div class="row">
+                    {% for deal in deals %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ deal.product_name }}</h5>
+                                <p class="card-text">{{ deal.description }}</p>
+                                <div class="deal-info">
+                                    <p>Original Price: ${{ "%.2f"|format(deal.original_price) }}</p>
+                                    <p>Discounted Price: ${{ "%.2f"|format(deal.discounted_price) }}</p>
+                                    <p>Discount: {{ "%.1f"|format(deal.discount_percentage) }}%</p>
+                                    <div class="progress mb-3">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: {{ (deal.current_participants / deal.min_participants * 100)|min(100) }}%">
+                                            {{ deal.current_participants }}/{{ deal.min_participants }} participants
+                                        </div>
+                                    </div>
+                                    <p class="time-remaining" data-deal-id="{{ deal.id }}">
+                                        Time remaining: Calculating...
+                                    </p>
+                                </div>
+                                {% if deal.is_active %}
+                                <button class="btn btn-success" onclick="showJoinForm({{ deal.id }})">
+                                    Join Deal
+                                </button>
+                                {% else %}
+                                <button class="btn btn-secondary" disabled>Expired</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Deal Modal -->
+    <div class="modal fade" id="joinDealModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Join Group Deal</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="joinDealForm" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Join Deal</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', path='/js/script.js') }}"></script>
+</body>
+</html> 
